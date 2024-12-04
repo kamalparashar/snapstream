@@ -2,34 +2,33 @@ import { db } from "./firebase.js";
 import {
     collection,
     doc, 
+    onSnapshot,
     addDoc,
     deleteDoc,
     updateDoc, 
-    getDoc, 
-    serverTimestamp
+    getDoc,
+    serverTimestamp,
+    query, 
+    orderBy
 } from "firebase/firestore"
-import {
-    deleteObject, 
-    getDownloadURL, 
-    getStorage, 
-    ref
-} from "firebase/storage";
+import { auth } from "./firebase.js";
 
 class Service {
 
-    async createPost({username, image, caption}){
+    async createPost({userId, username, FeaturedImage, caption}){
         try{
-            const downloadUrl = await uploadFile(image);
             const postData = await addDoc(collection(db, 'posts'),
-                        {
-                            timestamp: serverTimestamp(),
-                            imageUrl: downloadUrl,
-                            caption: caption,
-                            username: username,
-                        },
-                    )
-            console.log("Post created successfully!");
-            return postData;
+                            {
+                                timestamp: serverTimestamp(),
+                                FeaturedImage: FeaturedImage,
+                                caption: caption,
+                                userId: userId,
+                                username: username,
+                            },
+                        )
+
+            const post = await this.getPost(postData.id)
+            return post
         }
         catch(error){
             console.log("Error creating post: ", error);
@@ -37,21 +36,20 @@ class Service {
         }
     }
 
-    async updatePost(postId, {image, caption}){
+    async updatePost(postId, {FeaturedImage, caption}){
         try {
             const docRef = doc(db, "posts", postId);
             const docSnap = await getDoc(docRef);
 
             if(docSnap.exists()){
                 const data = docSnap.data();
-                const imageURL = data[imageUrl];
+                const imageURL = data[FeaturedImage];
                 if(imageURL){
                     await deleteFile(imageURL);
                 }
-                const  downloadUrl = await uploadFile(image);
                 const post = await updateDoc(docRef,
                     {
-                        imageUrl: downloadUrl,
+                        FeaturedImage: FeaturedImage,
                         caption: caption
                     }
                 )
@@ -69,13 +67,13 @@ class Service {
 
     async deletePost(postId){
         try {
-            const docRef = doc(db, "posts", postId);
-            const docSnap = await getDoc(docRef);
+            const docRef = doc(db, "posts", postId)
+            const docSnap = await getDoc(docRef)
             if(docSnap.exists()){
-                const data = docSnap.data();
-                const imageURL = data[imageUrl];
+                const data = docSnap.data()
+                const imageURL = data[FeaturedImage]
                 if(imageURL){
-                    await deleteFile(imageURL);
+                    await deleteFile(imageURL)
                 }
             }
             await deleteDoc(docRef);
@@ -85,41 +83,81 @@ class Service {
         }
     }
 
-
-    // upload file
-    async uploadFile(image){
+    //get post
+    async getPost(postId){
         try {
-            if(!image){
-                return null;
+            const docRef = doc(db, "posts", postId);
+            const docSnap = await getDoc(docRef);
+            if(docSnap.exists()){
+                const post = {
+                    id: docSnap.id, 
+                    // timestamp: docSnap.data().timestamp,
+                    FeaturedImage: docSnap.data().FeaturedImage,
+                    caption: docSnap.data().caption,
+                    userId: docSnap.data().userId,
+                    username: docSnap.data().username,
+                }
+                post.comments = await this.getComments(post.id);
+                return post;
             }
-            const storage = getStorage();
-            // Upload file and metadata to the object 'images/mountains.jpg'
-            const storageRef = ref(storage, 'images/' + image.name);
-            const uploadTask = await uploadBytesResumable(storageRef, image);
-
-            await getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-                return downloadUrl;
-            })
+            
         } catch (error) {
             throw error;
         }
     }
 
-    // delete file
-    async deleteFile(imageURL){
-        const baseURL = "https://firebasestorage.googleapis.com/v0/b/your-app-id.appspot.com/o/"; 
-        const filePath = decodeURIComponent(imageURL.split(baseURL)[1].split("?")[0]);
-        const fileRef = ref(storage, filePath);
+    //get Posts
+    async getPosts(postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"))){
+        return new Promise((resolve, reject) => { 
+            const unsubscribe = onSnapshot(postsQuery, (snapshot) => { 
+                const posts = snapshot.docs.map(doc => ({
+                    id: doc.id, 
+                    FeaturedImage: doc.data().FeaturedImage, 
+                    caption: doc.data().caption, 
+                    userId: doc.data().userId, 
+                    username: doc.data().username,
+                    comments : this.getComments(doc.id)
+                })
+            );
+                resolve(posts); 
+            }, reject); 
+            return unsubscribe; // Unsubscribe to clean up 
+        });
+    
+    }
+
+    async addComment({postId, comment}){
         try {
-            await deleteObject(fileRef);
-            console.log("File deleted successfully!");
+            const commentData = {
+                timestamp:serverTimestamp(),
+                comment: comment,
+                username: auth.currentUser.displayName,
+                userId: auth.currentUser.uid,
+            }
+            await addDoc(collection(db, 'posts', postId, 'comments'),commentData)
+            return commentData;
         } catch (error) {
-            console.log("Error! Deleting file: ", error);
+            console.log(error);
             throw error;
         }
     }
 
-
+    async getComments(postId){
+        return new Promise((resolve, reject) => { 
+            const unsubscribe = onSnapshot(collection(db, 'posts', postId, 'comments'), 
+            (snapshot) => { 
+                const commentsList = snapshot.docs.map(doc => (
+                    { 
+                        id: doc.id,
+                        comment: doc.data().comment,
+                        username: doc.data().username,
+                        userId: doc.data().userId
+                    }));
+                resolve(commentsList); 
+            }, reject);
+            return ()=>unsubscribe(); // Unsubscribe to clean up 
+        });
+    }
 }
 
 const service = new Service();

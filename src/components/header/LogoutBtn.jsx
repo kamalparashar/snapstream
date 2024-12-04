@@ -16,7 +16,7 @@ function LogoutBtn() {
   }
   return (
     <button onClick={logoutHandler}>
-        <img src={Logout} alt='Logout' height={30} width={30}/>
+        <img src={Logout} alt='Logout' height={25} width={25}/>
     </button>
   )
 }

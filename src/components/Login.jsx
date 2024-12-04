@@ -9,7 +9,7 @@ import authService from "../firebase/auth.js";
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, reset} = useForm();
   const [error, setError] = useState("");
 
   const login = async (data) => {
@@ -18,10 +18,8 @@ function Login() {
       const session = await authService.login(data);
       if (session) {
         const userData = await authService.getCurrentUser();
-        console.log("usedata:", userData);
         if (userData) {
-          console.log("user Exisits");
-          dispatch(authLogin(userData));
+          dispatch(authLogin({userData}));
           navigate("/");
         }
       }
@@ -29,17 +27,20 @@ function Login() {
       setError(error.message);
     }
     finally{
-      document.login_form.reset();
+      reset({
+        email:'',
+        password:''
+      });
     }
   };
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex justify-center items-center m-8">
       <div
-        className={`mx-auto w-full max-w-lg rounded-xl px-10 pt-4 pb-8 border border-white/80 sm:max-w-80`}
+        className={`mx-auto w-full max-w-lg rounded-xl px-10 pt-4 pb-8 border border-gray-600  shadow-gray-600 shadow-md sm:max-w-80`}
       >
         <div className="mb-2 flex justify-center">
-          <span className="inline-block">
+          <span className="inline-block w-2/3">
             <Logo />
           </span>
         </div>
@@ -60,7 +61,7 @@ function Login() {
         
         {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
 
-        <form name='login_form' onSubmit={handleSubmit(login)} className="mt-8">
+        <form onSubmit={handleSubmit(login)} className="mt-8">
           <div className="space-y-5">
             <Input
               label="Email: "
@@ -74,6 +75,7 @@ function Login() {
                     "Email address must be a valid address",
                 },
               })}
+              className="rounded-md "
             />
             <Input
               label="Password:"
@@ -82,10 +84,11 @@ function Login() {
               {...register("password", {
                 required: true,
               })}
+              className="rounded-md "
             />
             <Button 
               type="submit" 
-              className="w-full
+              className="w-full py-2 rounded-md
                     bg-gradient-to-r from-[#9B00FF] from-20% to-[#FD1199] to-100%"
               children="Login" />
           </div>

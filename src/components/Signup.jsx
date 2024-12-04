@@ -10,11 +10,10 @@ function Signup() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const dispatch = useDispatch();
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, reset} = useForm();
 
   const create = async (data) => {
     setError("");
-    console.log("data: ", data);
     try {
       const userData = await authService.createAccount(data);
       if (userData) {
@@ -26,18 +25,22 @@ function Signup() {
       setError(error.message);
     }
     finally{
-      document.signup_form.reset();
+      reset({
+        email:'',
+        username:'',
+        password:'',
+      });
     }
   }
 
   return (
-    <div>
+    <div className="m-8">
       <div
-        className={`mx-auto w-full max-w-lg rounded-xl px-10 pt-4 pb-8 border border-white/80 sm:max-w-80`}
+        className={`mx-auto w-full max-w-lg rounded-xl px-10 pt-4 pb-8 border border-gray-600 shadow-gray-600 shadow-md sm:max-w-80`}
       >
         
         <div className="mb-2 flex justify-center">
-          <span className="inline-block">
+          <span className="inline-block w-2/3">
             <Logo />
           </span>
         </div>
@@ -58,14 +61,15 @@ function Signup() {
         
         {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
 
-        <form name="signup_form" onSubmit={handleSubmit(create)} className="mt-8">
+        <form onSubmit={handleSubmit(create)} className="mt-8">
           <div className="space-y-5">
             <Input
-                label="Full Name: "
-                placeholder="Enter your full name"
-                {...register("name", {
+                label="Username: "
+                placeholder="Enter your username"
+                {...register("username", {
                   required: true,
                 })}
+                className="rounded-md "
               />
             <Input
               label="Email: "
@@ -79,6 +83,7 @@ function Signup() {
                     "Email address must be a valid address",
                 },
               })}
+              className="rounded-md "
             />
             <Input
               label="Password:"
@@ -87,10 +92,11 @@ function Signup() {
               {...register("password", {
                 required: true,
               })}
+              className="rounded-md "
             />
             <Button 
               type="submit" 
-              className="w-full
+              className="w-full py-2 rounded-md
                     bg-gradient-to-r from-[#9B00FF] from-20% to-[#FD1199] to-100%"
               children="Create Account" />
           </div>

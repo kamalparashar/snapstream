@@ -17,7 +17,7 @@ const Input = React.forwardRef(function Input({
             }
             <input
             type={type}
-            className={`px-3 py-1 rounded-lg bg-white text-black outline-none focus:bg-gray-50 duration-200 border border-gray-200 w-full ${className}`}
+            className={`px-3 py-1 bg-white text-black outline-none focus:bg-gray-50 duration-200 w-full ${className}`}
             {...props}
             id={id}
             ref={ref}

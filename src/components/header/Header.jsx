@@ -6,51 +6,48 @@ import { useNavigate } from "react-router-dom";
 import Home from "../../assets/Home.png";
 import User from "../../assets/User.png";
 import Post from "../../assets/Post.png";
+import { name } from "@cloudinary/url-gen/actions/namedTransformation";
 
 function Header() {
-  const authStatus = useSelector((state) => state.auth.status);
+  const authStatus = useSelector(state => state.auth.status);
+  const userData = useSelector(state => state.auth.userData);
   const navigate = useNavigate();
-
+  
   const navItems = [
     {
-      name: <img src={Home} alt="Home" height={30} width={30}/>,
-      slug: "/",
+      name: <img src={Home} alt="Home" height={25} width={25}/>,
+      path: "/",
       active: true,
     },
     {
-      name: <img src={Post} alt="add post" height={30} width={30}/>,
-      slug: "/add-post",
+      name: <img src={Post} alt="add post" height={25} width={25}/>,
+      path: "/add-post",
       active: authStatus,
     },
     {
-      name: <img src={User} alt="Profile" height={30} width={30}/>,
-      slug: "/profile",
+      name: <img src={User} alt="Profile" height={25} width={25}/>,
+      path: `/user/${userData?.id}`,
       active: authStatus,
     },
     {
       name: "Login",
-      slug: "/login",
+      path: "/login",
       active: !authStatus,
     },
     {
       name: "Signup",
-      slug: "/signup",
+      path: "/signup",
       active: !authStatus,
-    },
-    {
-      name: "My Posts",
-      slug: "/my-posts",
-      active: authStatus,
     },
   ];
 
   return (
-    <header className=' shadow-white shadow'>
-      <Container className={`mx-0 max-w-full flex justify-end`}>
+    <header className='py-2 shadow-gray-600 shadow-sm w-full'>
+      <Container className={`mx-0 min-w-full flex justify-end`}>
         <nav className="flex justify-center items-center">
-          <div className="mt-1 mr-4 sm:mr-0.5">
+          <div >
             <Link to="/">
-              <Logo className="h-[60px] w-[200px] flex justify-center items-center"/>
+              <Logo className=" w-[15vmax] flex justify-center items-center object-contain sm:justify-start"/>
             </Link>
           </div>
         </nav>
@@ -58,9 +55,9 @@ function Header() {
         <ul className='flex justify-between items-center ml-auto float-right'>
           {navItems.map((item) =>
             item.active ? (
-              <li key={item.slug}>
+              <li key={item.path}>
                 <button
-                onClick={()=> navigate(item.slug)}
+                onClick={()=> navigate(item.path)}
                 className='text-xl font-semibold inline-block px-3 rounded-full sm:px-2 sm:text-base'
                 >
                   <span className="whitespace-nowrap">{item.name}</span>
@@ -69,7 +66,7 @@ function Header() {
             ) : null
           )}
           {authStatus && (
-            <li key='logout'>
+            <li key='/logout' className="pl-2">
               <LogoutBtn />
             </li>
           )}
