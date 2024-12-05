@@ -9,16 +9,11 @@ const firebaseConfig = {
   apiKey: conf.apiKey,
   authDomain: conf.authDomain,
   projectId: conf.projectId,
-  storageBucket: conf.storageBucket,
-  messagingSenderId: conf.messagingSenderId,
-  appId: conf.appId,
-  measurementId: conf.measurementId
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-export {app, auth, db, storage};
+export {app, auth, db};
