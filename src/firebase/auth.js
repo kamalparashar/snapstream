@@ -6,6 +6,9 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "./firebase.js";
+import userPhoto from "../assets/User.png"
+import { setDoc, doc, updateDoc} from "firebase/firestore";
+import { db } from "./firebase.js";
 
 export class AuthService {
   async createAccount({ profile, username, email, password }) {
@@ -16,11 +19,16 @@ export class AuthService {
         password
       );
       if (userCredentials) {
+        console.log(userCredentials)
         await updateProfile(userCredentials.user, {
           displayName: username,
-          photoURL: profile,
+          photoURL: profile?profile:userPhoto,
         });
-        console.log("create account: ", userCredentials.user);
+        console.log("Account created: ", userCredentials.user);
+        await setDoc(doc(db, "users", userCredentials.user.uid), {
+          username: userCredentials.user.displayName,
+          profilePhoto: userCredentials.user.photoURL
+        })
         return userCredentials.user;
       } else {
         return null;
@@ -56,7 +64,7 @@ export class AuthService {
                     id: user.uid, 
                     username: user.displayName, 
                     email: user.email, 
-                    profilePicture: user.photoURL, 
+                    profilePicture: user.photoURL?user.photoURL:userPhoto, 
                     emailVerified: user.emailVerified, 
                 }; 
                 resolve(userInfo); 
@@ -68,30 +76,27 @@ export class AuthService {
     });
   }
 
-//   async getCurrentUser() {
-//     const unsubscribe = onAuthStateChanged(auth, (user) => {
-//       if (user) {
-//         const userInfo = {
-//             id: user.uid,
-//             username: user.displayName,
-//             email: user.email,
-//             profilePicture: user.photoURL,
-//             emailVerified: user.emailVerified,
-//           };
-//           return userInfo;
-//         // return user;
-//       } else {
-//         return null;
-//       }
-//     });
-//     return () => unsubscribe();
-//     // const user = auth.currentUser;
-//     // if (!user) {
-//     //   return null;
-//     // }
-    
-//   }
+  async updateProfilePhoto(url){
+    try {
+      await updateProfile(auth.currentUser, {
+        photoURL: url,
+      })
+      .then(async()=>{
+        await updateDoc(doc(db, "users", auth.currentUser.uid), {
+          profilePhoto: auth.currentUser.photoURL
+        })
+        return url
+      })
+      .catch((error) => {
+        throw error
+      })
+    } 
+    catch(error){
+      throw error
+    }
+  }
 }
+
 
 const authService = new AuthService();
 

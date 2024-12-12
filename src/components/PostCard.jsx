@@ -1,26 +1,40 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import {Input, Button} from './index'
-import { useForm } from "react-hook-form";
+import { useForm } from "react-hook-form"
 import {Link} from 'react-router-dom'
 import parse from 'html-react-parser'
 import firebaseService from "../firebase/config.js"
+import userPhoto from "../assets/User.png"
+import { addComment } from '../store/postSlice.js'
 
 function PostCard(post) {
-  const { register, handleSubmit, reset} = useForm();
+  const { register, handleSubmit, reset} = useForm()
   const authStatus = useSelector(state=>state.auth.status)
+  const dispatch = useDispatch()
   const [comments, setComments] = useState(null)
 
-  useEffect(()=>{
-    firebaseService.getComments(post.id).then((comments)=>{
-      setComments(comments);
-    }) 
-  },[])
+  useEffect(() => {
+    let unsubscribe = null
+    async function fetchComments() {
+      unsubscribe = await firebaseService.getComments(post.id, setComments);
+      if(comments){
+        comments.map(comment => dispatch(addComment(post.id,comment)))
+      }
+    }
+    fetchComments();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [post.id]);
 
   const submitComment = async (data) => {
     try {
       const res = await firebaseService.addComment({postId: post.id, comment: data.comment});
-      await setComments((prev) => (prev = [...prev, res]))
+      dispatch(addComment({postId:post.id, comment:res.comment}))
+      setComments((prev) => (prev = [...prev, res.comment]))
     } catch (error) {
       console.log(error)
       throw error;
@@ -38,7 +52,7 @@ function PostCard(post) {
         <Link to={`/user/${post.userId}`}>
           <div className="flex justify-evenly items-center gap-3">
             <img
-              src={post.FeaturedImage}
+              src={userPhoto}
               alt="photo"
               width={50}
               height={50}
@@ -58,18 +72,16 @@ function PostCard(post) {
           </div>
         </div>
       </Link>
-      {(authStatus) ? (
-        <div className='flex flex-col'>
+        <div className='flex flex-col pl-2'>
             {comments?.map(comment=>(
-              <div id={comment.id} className='flex gap-2'>
+              <div key={comment.id} className='flex gap-2'>
                 <strong>{comment.username}</strong>
                 <p>{comment.comment}</p>  
               </div>
             ))
           }
         </div>
-        ) :  null
-      }        
+               
       
       {(authStatus)?(
         <form name='comment_form' onSubmit={handleSubmit(submitComment)}>

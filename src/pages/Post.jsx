@@ -4,9 +4,8 @@ import firebaseService from "../firebase/config";
 import {Input, Button, Container} from '../components/index'
 import parse from "html-react-parser";
 import { useDispatch, useSelector } from "react-redux";
-import { removePost } from "../store/postSlice";
+import { deletePost } from "../store/postSlice";
 import { useForm } from "react-hook-form";
-
 
 export default function Post() {
   const { register, handleSubmit, reset} = useForm();
@@ -16,29 +15,29 @@ export default function Post() {
   const dispatch = useDispatch();
   const authStatus = useSelector((state) => state.auth.status);
   const userData = useSelector((state) => state.auth.userData);
+  const postData = useSelector((state) => state.posts.posts);
   const isAuthor = post && userData ? post.userId === userData.id : false;
-  const [comments, setComments] = useState(null)
+  const [comments, setComments] = useState([])
 
   useEffect(() => {
     if (id) {
-      firebaseService.getPost(id).then((post) => {
-        if (post) {
-          setPost(post);
-          setComments(post.comments)
-        } else {
-          console.log("not getting post");
-          navigate("/");
-        }
-      });
-    } else navigate("/");
-  }, [id, navigate]);
+      const post = postData.filter(post => post.id == id)
+      if(post){
+        setComments(post.comments)
+      }
+      else{
+        navigate("/")
+      }
+    } 
+    else navigate("/");
+  }, [id]);
 
   const deletePost = () => {
     firebaseService.deletePost(post.id).then((status) => {
       if (status) {
         firebaseService.deleteFile(post.FeaturedImage).then((status) => {
           if (status) {
-            dispatch(removePost(post));
+            dispatch(deletePost(post));
             navigate("/");
           }
         });
@@ -48,8 +47,8 @@ export default function Post() {
 
   const submitComment = async (data) => {
     try {
-      const res = await firebaseService.addComment({postId: post.id, comment: data.comment});
-      await setComments((prev) => (prev = [...prev, res]))
+      await firebaseService.addComment({postId: post.id, comment: data.comment});
+      setComments((prev) => (prev = [...prev, res]))
     } catch (error) {
       console.log(error)
       throw error;
@@ -65,10 +64,9 @@ export default function Post() {
     return post ? (
       <div className="w-full mt-8 ">
         <Container className="flex justify-between p-4 ">
-          <div className="  w-5/12 bg-[#191919] border-2 border-gray-700">
+          <div className="  w-6/12 bg-[#191919] border-2 border-gray-700">
             <div
-              className=" flex items-center justify-between px-4 py-2
-                     "
+              className=" flex items-center justify-between px-4 py-2"
             >
               <div className="flex justify-evenly items-center gap-3">
                 <img
@@ -98,7 +96,7 @@ export default function Post() {
               {authStatus ? (
                 <div className="flex flex-col">
                   {comments?.map((comment) => (
-                    <div id={comment.id} className="flex gap-2">
+                    <div key={comment.id} className="flex gap-2">
                       <strong>{comment.username}</strong>
                       <p>{comment.comment}</p>
                     </div>
@@ -118,7 +116,7 @@ export default function Post() {
                       {...register("comment", {
                         required: true,
                       })}
-                      className="py-2   focus:border-2 border-black"
+                      className="py-2 focus:border-2 border-black"
                     />
                     <Button
                       type="submit"

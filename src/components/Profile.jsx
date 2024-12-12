@@ -1,44 +1,90 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import firebaseService from "../firebase/config"
+import authService from "../firebase/auth.js"
+import firebaseService from "../firebase/config.js"
 import { useSelector } from 'react-redux'
-import { db } from "../firebase/firebase.js"
-import {
-    collection,
-    query, 
-    orderBy,
-    where,
-} from "firebase/firestore"
-import {Card} from './index.js'
+import {Button, Card} from './index.js'
+import updateImage from "../assets/updateImage.png"
+import userPhoto from "../assets/user.png"
+import { uploadFile } from '../cloudinary/cloudinary.js'
+
+function chunkArray(array, chunkSize) { 
+  const result = []; 
+  for (let i = 0; i < array.length; i += chunkSize) { 
+    result.push(array.slice(i, i + chunkSize)); 
+  } 
+  return result; 
+}
 
 function Profile() {
   const {userId} = useParams()
-  const allPosts = useSelector(state=>state.posts.posts)
-  const [userData, setUserData] = useState("") 
-  const [posts, setPosts] = useState(null)
-  
+  const posts = useSelector(state=>state.posts.posts)
+  const [userPosts, setUserPosts] = useState([])
+  const [isAuthor, setIsAuthor] = useState(false)
+  const [userData, setUserData] = useState(null)
+  const chunkedPosts = chunkArray(userPosts, 2);
+
+  const handleSubmit = async (e)=>{
+    e.preventDefault();
+    await uploadFile(e.target[0].files[0])
+    .then(async(url)=>{
+      await authService.updateProfilePhoto(url)
+    })
+    .then((res)=>{
+      setUserData((prevState)=> ({...prevState, profilePicture:res}))
+      console.log(userData)
+    })
+    .catch((error)=>(
+      console.log("Error: while updating profile", error)
+    ))
+  }
+
   useEffect(()=>{
-    // const Query = query(collection(db, "posts"), where("userId","==",`${userId}`) ,orderBy("timestamp", "desc"))
-    // firebaseService.getPosts(Query).then((posts)=>{
-    //   setPosts(posts)
-    // })
     if(userId){
-      const post = allPosts.filter((post)=> post.userId == userId)
-      setPosts(post)
-      // setUserData(post[0].username)
-      console.log(post[0].username)
-      
+      const filteredPosts = posts.filter((post)=> post.userId == userId)
+      setUserPosts(filteredPosts)
     }
+  },[userId,posts])
+
+  useEffect(()=>{
+    authService.getCurrentUser()
+    .then(async(userInfo) => {
+      if (userInfo && userInfo.id === userId) {
+        setIsAuthor(true)
+        setUserData(userInfo)
+      }
+      else{
+        // make a function getuser(userid) to get the info of the user.
+        await firebaseService.getUser(userId)
+        .then((user)=>{
+          console.log(user)
+          setUserData(user)
+        })
+        .catch((error)=>{
+          console.log("Error: while fetching user profile info: ", error);
+        })
+      }
+    })
+    .catch((error) => {
+      console.log("error in UseEffect while fetching user data:", error);
+    })
   },[userId])
 
   return (
-    <div className='p-4 gap-y-8'>
-      <div className='flex justify-around'>
+    <div>
+      <div className='p-4 flex justify-around'>
         <div className='flex flex-col text-center'>
-          <img src="https://res.cloudinary.com/snapstream/image/upload/q_auto/c_fill,g_auto,h_300,w_300/firebase_jagmm8?_a=DATAg1AAZAA0" alt={userData.username} 
-          className='w-[20vmax] h-auto border-2 border-double border-gray-800 rounded-full'/>
+          <img src={userData?.profilePicture || userPhoto} alt="profile"
+          className='object-cover w-[15vmax] h-[15vmax] rounded-full border-2 border-double border-gray-800 '/>
+          { isAuthor && 
+              <form onSubmit={handleSubmit} className='flex justify-center gap-2 p-4'>
+                <label htmlFor="file-input"><img src={updateImage} height={30} width={30}/></label>
+                <input id='file-input' type="file" className='hidden' />
+                <Button type="submit" className='p-1 rounded-xl' children={"Update"} />
+              </form>
+          }
           <div className='text-3xl flex justify-center items-center p-2'>
-            <strong>{userData.username}</strong>
+            <strong>{userData?.username}</strong>
           </div>
         </div>
         <div className='flex font-bold justify-start items-center gap-8 text-center'>
@@ -47,15 +93,23 @@ function Profile() {
           <div><p>10</p>Total posts</div>
         </div>
       </div>
-      <div className='mt-4 flex flex-wrap gap-4'>
-        {posts?.map((post)=> (
-            <div id={post.id}>
-                <Link to={`/post/${post.id}`}>
-                  <Card {...post}/>
-                </Link>
+      
+      <div className='flex flex-col'>
+        <div className='border-b border-t border-gray-600 shadow-gray-600 shadow-md p-4 flex justify-center items-center font-bold text-2xl'>
+          Posts
+        </div>
+        <div className='p-4 grid grid-cols-3 md:grid-cols-4 gap-2'>
+          {chunkedPosts?.map((chunk, index) => (
+              <div key={index} className='grid gap-2'>
+                  {chunk?.map(post => ( 
+                    <Link key={post.id} to={`/post/${post.id}`} className="block w-full h-full"> 
+                      <Card {...post} /> 
+                    </Link>
+                  ))}
               </div>
-          ))
-        }
+            ))
+          }
+        </div>
       </div>
     </div>
   )

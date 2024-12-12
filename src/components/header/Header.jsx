@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import Home from "../../assets/Home.png";
 import User from "../../assets/User.png";
 import Post from "../../assets/Post.png";
-import { name } from "@cloudinary/url-gen/actions/namedTransformation";
 
 function Header() {
   const authStatus = useSelector(state => state.auth.status);

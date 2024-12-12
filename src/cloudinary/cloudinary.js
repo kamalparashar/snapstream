@@ -44,12 +44,13 @@ const deleteFile = async ({publicId}) => {
 
 const getFile = async (publicId) => {
   const cld = new Cloudinary({ cloud: { cloudName: conf.cloudinaryName } });
-  const img = cld.image(publicId) 
-  // .format(format().auto()) // Correct usage 
-  .quality("auto") .resize(fill().gravity(autoGravity()).width(300).height(300))
+  const img = cld.image(publicId)
+  .quality(80).resize(fill().gravity(autoGravity()))
 
   return img.toURL();
 };
+
+
 
 export { uploadFile, deleteFile, getFile };
 

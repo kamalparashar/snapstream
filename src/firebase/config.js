@@ -9,7 +9,7 @@ import {
     getDoc,
     serverTimestamp,
     query, 
-    orderBy
+    orderBy,
 } from "firebase/firestore"
 import { auth } from "./firebase.js";
 
@@ -90,8 +90,7 @@ class Service {
             const docSnap = await getDoc(docRef);
             if(docSnap.exists()){
                 const post = {
-                    id: docSnap.id, 
-                    // timestamp: docSnap.data().timestamp,
+                    id: docSnap.id,
                     FeaturedImage: docSnap.data().FeaturedImage,
                     caption: docSnap.data().caption,
                     userId: docSnap.data().userId,
@@ -100,7 +99,6 @@ class Service {
                 post.comments = await this.getComments(post.id);
                 return post;
             }
-            
         } catch (error) {
             throw error;
         }
@@ -108,22 +106,24 @@ class Service {
 
     //get Posts
     async getPosts(postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"))){
-        return new Promise((resolve, reject) => { 
-            const unsubscribe = onSnapshot(postsQuery, (snapshot) => { 
-                const posts = snapshot.docs.map(doc => ({
-                    id: doc.id, 
-                    FeaturedImage: doc.data().FeaturedImage, 
-                    caption: doc.data().caption, 
-                    userId: doc.data().userId, 
-                    username: doc.data().username,
-                    comments : this.getComments(doc.id)
-                })
-            );
-                resolve(posts); 
+        return await new Promise((resolve, reject) => { 
+            const unsubscribe = onSnapshot(postsQuery, async(snapshot) => { 
+                const posts = (snapshot.docs?.map(doc => {
+                    return {
+                        id: doc.id, 
+                        FeaturedImage: doc.data().FeaturedImage, 
+                        caption: doc.data().caption, 
+                        userId: doc.data().userId, 
+                        username: doc.data().username,
+                    }
+                }
+            ))
+            resolve(posts); 
             }, reject); 
-            return unsubscribe; // Unsubscribe to clean up 
+            return ()=>{
+                unsubscribe(); // Unsubscribe to clean up 
+            }    
         });
-    
     }
 
     async addComment({postId, comment}){
@@ -135,28 +135,45 @@ class Service {
                 userId: auth.currentUser.uid,
             }
             await addDoc(collection(db, 'posts', postId, 'comments'),commentData)
-            return commentData;
+            return commentData
         } catch (error) {
             console.log(error);
             throw error;
         }
     }
-
-    async getComments(postId){
-        return new Promise((resolve, reject) => { 
-            const unsubscribe = onSnapshot(collection(db, 'posts', postId, 'comments'), 
+ 
+    async getComments(postId, callback) {
+            const unsubscribe = onSnapshot(
+            collection(db, 'posts', postId, 'comments'), 
             (snapshot) => { 
-                const commentsList = snapshot.docs.map(doc => (
-                    { 
-                        id: doc.id,
-                        comment: doc.data().comment,
-                        username: doc.data().username,
-                        userId: doc.data().userId
-                    }));
-                resolve(commentsList); 
-            }, reject);
-            return ()=>unsubscribe(); // Unsubscribe to clean up 
-        });
+                const commentsList = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    comment: doc.data().comment,
+                    username: doc.data().username,
+                    userId: doc.data().userId
+                }));
+                if (callback) callback(commentsList); // Invoke the callback if provided
+            })
+            return () => unsubscribe(); // Unsubscribe to clean up 
+    }
+
+    async getUser(userId){
+        try {
+            const docSnap = await getDoc(doc(db, "users", userId))
+            if(docSnap.exists()){
+                console.log("cmiovmseiv")
+                const user = {
+                    profilePhoto: docSnap.data()?.profilePhoto,
+                    username: docSnap.data()?.username
+                }
+                return user
+            }
+            else{
+                return null
+            }
+        } catch (error) {
+            throw error
+        }
     }
 }
 

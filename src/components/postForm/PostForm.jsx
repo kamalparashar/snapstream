@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import firebaseService from "../../firebase/config";
 import { useDispatch, useSelector } from "react-redux";
-import { addPost, editPost } from "../../store/postSlice";
+import { addPost, updatePost } from "../../store/postSlice";
 import { uploadFile, deleteFile, getFile } from "../../cloudinary/cloudinary.js"
 
 function PostForm({ post }) {
@@ -35,7 +35,7 @@ function PostForm({ post }) {
         FeaturedImage: file ? file : post.FeaturedImage,
       });
       if (dbPost) {
-        dispatch(editPost(dbPost))
+        dispatch(updatePost(dbPost))
         navigate(`/post/${dbPost.id}`)
       }
     }
@@ -90,7 +90,7 @@ function PostForm({ post }) {
         <Button
           type="submit"
           bgColor={post ? "bg-green-500" : undefined}
-          className={post ? "w-full hover:bg-green-900" : "w-full hover:bg-blue-500 active:bg-blue-900"}
+          className={post ? "w-full p-2 hover:bg-green-900" : "w-full p-2 hover:bg-blue-500 active:bg-blue-900"}
           children={post ? "Update" : "Submit"}
         />
       </div>
