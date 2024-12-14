@@ -5,7 +5,6 @@ import firebaseService from "../firebase/config.js"
 import { useSelector } from 'react-redux'
 import {Button, Card} from './index.js'
 import updateImage from "../assets/updateImage.png"
-import userPhoto from "../assets/user.png"
 import { uploadFile } from '../cloudinary/cloudinary.js'
 
 function chunkArray(array, chunkSize) { 
@@ -73,7 +72,7 @@ function Profile() {
     <div>
       <div className='flex justify-between px-8 py-4'>
         <div className='flex flex-col  justify-center items-center text-center'>
-          <img src={userData?.profilePicture || userPhoto} alt="profile"
+          <img src={userData?.profilePicture} alt="profile"
           className='block object-cover w-[15vmax] h-[15vmax] rounded-full border-2 border-double border-gray-800 '/>
           <div className='text-2xl flex pt-2'>
             <strong>{userData?.username}</strong>
