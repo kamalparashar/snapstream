@@ -1,36 +1,66 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import firebaseService from "../firebase/config";
-import {Input, Button, Container} from '../components/index'
+import { Input, Button, Container } from "../components/index";
 import parse from "html-react-parser";
 import { useDispatch, useSelector } from "react-redux";
 import { deletePost } from "../store/postSlice";
+import { addComment } from "../store/postSlice.js";
 import { useForm } from "react-hook-form";
 
 export default function Post() {
-  const { register, handleSubmit, reset} = useForm();
-  const [post, setPost] = useState(null);
+  const { register, handleSubmit, reset } = useForm();
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const authStatus = useSelector((state) => state.auth.status);
-  const userData = useSelector((state) => state.auth.userData);
   const postData = useSelector((state) => state.posts.posts);
-  const isAuthor = post && userData ? post.userId === userData.id : false;
-  const [comments, setComments] = useState([])
+  const [user, setUser] = useState([]);
+  const [post, setPost] = useState(null);
+  const initialComments = useSelector(
+    (state) => state.posts.posts.find((p) => p.id === id)?.comments || []
+  );
+  const [comments, setComments] = useState(initialComments);
 
   useEffect(() => {
     if (id) {
-      const post = postData.filter(post => post.id == id)
-      if(post){
-        setComments(post.comments)
+      const postInfo = postData.find((post) => post.id === id);
+      if (postInfo) {
+        setPost(postInfo);
+        firebaseService.getUser(postInfo.userId)
+          .then((user) => {
+            setUser(user);
+          })
+          .catch((error) => {
+            console.log("Error while fetching userInfo.", error);
+          });
+      } else {
+        navigate("/");
       }
-      else{
-        navigate("/")
+    } else navigate("/");
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (post) {
+      async function fetchData() {
+        const unsubscribe = firebaseService.getComments(
+          post.id,
+          (commentsList) => {
+            setComments(commentsList)
+            commentsList.forEach((comment) => {
+              dispatch(addComment({ postId: post.id, ...comment }));
+            });
+          }
+        );
+        return () => {
+          if (unsubscribe) {
+            unsubscribe();
+          }
+        };
       }
-    } 
-    else navigate("/");
-  }, [id]);
+      fetchData();
+    }
+  }, [post, dispatch]);
 
   const deletePost = () => {
     firebaseService.deletePost(post.id).then((status) => {
@@ -47,15 +77,25 @@ export default function Post() {
 
   const submitComment = async (data) => {
     try {
-      await firebaseService.addComment({postId: post.id, comment: data.comment});
-      setComments((prev) => (prev = [...prev, res]))
+      const res = await firebaseService.addComment({
+        postId: id,
+        comment: data.comment,
+      });
+      dispatch(
+        addComment({
+          postId: id,
+          comment: res.comment,
+          id: res.id,
+          username: res.username,
+          userId: res.userId,
+        })
+      );
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw error;
-    }
-    finally{
+    } finally {
       reset({
-        comment:'',
+        comment: "",
       });
     }
   };
@@ -65,38 +105,34 @@ export default function Post() {
       <div className="w-full mt-8 ">
         <Container className="flex justify-between p-4 ">
           <div className="  w-6/12 bg-[#191919] border-2 border-gray-700">
-            <div
-              className=" flex items-center justify-between px-4 py-2"
-            >
+            <div className=" flex items-center justify-between px-4 py-2">
               <div className="flex justify-evenly items-center gap-3">
                 <img
-                  src={post.FeaturedImage}
+                  src={user?.profilePhoto || ""}
                   alt="photo"
-                  width={50}
-                  height={50}
-                  className="w-[4vmax] h-auto block border-[5px] border-double rounded-full"
+                  className="w-[4vmax] h-[4vmax] block border-[5px] border-double rounded-full"
                 />
                 <span className="whitespace-nowrap">
-                  <strong>{post.username}</strong>
+                  <strong>{user?.username || "kamal"}</strong>
                 </span>
               </div>
               <div className="flex justify-start text-blue-500 ">Follow</div>
             </div>
-
             <div className="flex flex-col">
               <img src={post.FeaturedImage} />
             </div>
-            <div className="flex gap-2 pt-4">
+            <div className="flex gap-2 pt-4 pl-2">
               <strong>{post.username}</strong>
-              {parse(post.caption)}
+              {parse(post?.caption || "")}
             </div>
           </div>
-          <div className=" w-5/12 ">
-            <div className=" max-h-[600px] overflow-y-auto pl-6 border border-gray-700 rounded-xl ">
+
+          <div className=" w-5/12 pl-6 border border-gray-700 rounded-xl">
+            <div className=" max-h-[600px] overflow-y-auto ">
               {authStatus ? (
                 <div className="flex flex-col">
                   {comments?.map((comment) => (
-                    <div key={comment.id} className="flex gap-2">
+                    <div key={comment.id} className="flex gap-2 px-2">
                       <strong>{comment.username}</strong>
                       <p>{comment.comment}</p>
                     </div>
@@ -104,8 +140,8 @@ export default function Post() {
                 </div>
               ) : null}
             </div>
-            <div>
-            {authStatus ? (
+            <div className=" ">
+              {authStatus ? (
                 <form
                   name="comment_form"
                   onSubmit={handleSubmit(submitComment)}

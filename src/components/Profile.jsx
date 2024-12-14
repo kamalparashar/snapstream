@@ -57,7 +57,6 @@ function Profile() {
         // make a function getuser(userid) to get the info of the user.
         await firebaseService.getUser(userId)
         .then((user)=>{
-          console.log(user)
           setUserData(user)
         })
         .catch((error)=>{
@@ -72,10 +71,13 @@ function Profile() {
 
   return (
     <div>
-      <div className='p-4 flex justify-around'>
-        <div className='flex flex-col text-center'>
+      <div className='flex justify-between px-8 py-4'>
+        <div className='flex flex-col  justify-center items-center text-center'>
           <img src={userData?.profilePicture || userPhoto} alt="profile"
-          className='object-cover w-[15vmax] h-[15vmax] rounded-full border-2 border-double border-gray-800 '/>
+          className='block object-cover w-[15vmax] h-[15vmax] rounded-full border-2 border-double border-gray-800 '/>
+          <div className='text-2xl flex pt-2'>
+            <strong>{userData?.username}</strong>
+          </div>
           { isAuthor && 
               <form onSubmit={handleSubmit} className='flex justify-center gap-2 p-4'>
                 <label htmlFor="file-input"><img src={updateImage} height={30} width={30}/></label>
@@ -83,9 +85,6 @@ function Profile() {
                 <Button type="submit" className='p-1 rounded-xl' children={"Update"} />
               </form>
           }
-          <div className='text-3xl flex justify-center items-center p-2'>
-            <strong>{userData?.username}</strong>
-          </div>
         </div>
         <div className='flex font-bold justify-start items-center gap-8 text-center'>
           <div><p>10</p>followers</div>

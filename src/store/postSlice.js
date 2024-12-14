@@ -8,14 +8,7 @@ const initialState = {
       FeaturedImage: "",
       userId: "",
       username: "",
-      comments: [
-        {
-          id: "",
-          comment: "",
-          username: "",
-          userId: "",
-        },
-      ],
+      comments: [],
     },
   ],
 };
@@ -31,6 +24,7 @@ const postSlice = createSlice({
         FeaturedImage: action.payload.FeaturedImage,
         userId: action.payload.userId,
         username: action.payload.username,
+        comments: []
       };
       state.posts.push(post);
     },
@@ -48,11 +42,16 @@ const postSlice = createSlice({
       state.posts = state.posts.filter((post) => post.id !== action.payload.id);
     },
     addComment: (state, action) => {
-      const { postId, comment } = action.payload;
+      const { postId, id, comment, userId, username} = action.payload;
       const post = state.posts.find((post) => post.id === postId);
       if (post) {
-        console.log(typeof comment)
-        post.comments?.push(comment);
+        const commentData = {
+          id:id,
+          comment: comment,
+          userId:userId,
+          username: username,
+        }
+        post.comments.push(commentData);
       }
     },
     deleteComment: (state, action) => {

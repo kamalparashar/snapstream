@@ -134,8 +134,8 @@ class Service {
                 username: auth.currentUser.displayName,
                 userId: auth.currentUser.uid,
             }
-            await addDoc(collection(db, 'posts', postId, 'comments'),commentData)
-            return commentData
+            const res = await addDoc(collection(db, 'posts', postId, 'comments'),commentData)
+            return {...commentData, id: res.id}
         } catch (error) {
             console.log(error);
             throw error;
@@ -154,14 +154,13 @@ class Service {
                 }));
                 if (callback) callback(commentsList); // Invoke the callback if provided
             })
-            return () => unsubscribe(); // Unsubscribe to clean up 
+            return () => unsubscribe; // Unsubscribe to clean up 
     }
 
     async getUser(userId){
         try {
             const docSnap = await getDoc(doc(db, "users", userId))
             if(docSnap.exists()){
-                console.log("cmiovmseiv")
                 const user = {
                     profilePhoto: docSnap.data()?.profilePhoto,
                     username: docSnap.data()?.username

@@ -5,8 +5,7 @@ import firebaseService from "./firebase/config.js";
 import { login, logout } from "./store/authSlice.js";
 import { Outlet } from "react-router-dom";
 import { Header } from "./components";
-import { addPost } from "./store/postSlice.js";
-import { comment } from "postcss";
+import { addPost, addComment } from "./store/postSlice.js";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -30,13 +29,27 @@ function App() {
   }, []);
 
   useEffect(() => {
+    let unsubscribeAllComments = [];
+    async function fetchComments(id) {
+      const unsubscribe = await firebaseService.getComments(id, (comments) => {
+        comments.forEach((comment) => {
+          dispatch(addComment({ postId: id, ...comment }));
+        });
+      });
+      unsubscribeAllComments.push(unsubscribe);
+    }
     firebaseService.getPosts().then((posts) => {
       if (posts) {
-        posts.map((post) => dispatch(addPost(post)));
+        posts.forEach((post) => {
+          dispatch(addPost(post));
+          fetchComments(post.id);
+        });
       }
     });
-  }, []);
-
+    return () => {
+      unsubscribeAllComments.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [dispatch]);
 
   return !loading ? (
     <div className="min-h-screen flex w-full">
