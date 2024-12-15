@@ -134,7 +134,7 @@ export default function Post() {
             <h1 className="font-bold">Comments</h1>
             {authStatus ? (
               <form name="comment_form" onSubmit={handleSubmit(submitComment)}>
-                <div className="flex w-full mt-4 pb-6">
+                <div className="flex w-full mt-4 pb-4">
                   <Input
                     placeholder="add a comment..."
                     {...register("comment", {

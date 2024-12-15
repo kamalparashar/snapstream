@@ -75,7 +75,7 @@ function Login() {
                     "Email address must be a valid address",
                 },
               })}
-              className="rounded-md "
+              className="rounded-md bg-white text-black focus:bg-gray-50"
             />
             <Input
               label="Password:"

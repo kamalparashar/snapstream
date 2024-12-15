@@ -38,7 +38,7 @@ function Signup() {
       <div
         className={`mx-auto w-full max-w-lg rounded-xl px-10 pt-4 pb-8 border border-gray-600 shadow-gray-600 shadow-md sm:max-w-80`}
       >
-        
+
         <div className="mb-2 flex justify-center">
           <span className="inline-block w-2/3">
             <Logo />
@@ -69,7 +69,7 @@ function Signup() {
                 {...register("username", {
                   required: true,
                 })}
-                className="rounded-md "
+                className="rounded-md bg-white text-black focus:bg-gray-50"
               />
             <Input
               label="Email: "
@@ -83,7 +83,7 @@ function Signup() {
                     "Email address must be a valid address",
                 },
               })}
-              className="rounded-md "
+              className="rounded-md bg-white text-black focus:bg-gray-50"
             />
             <Input
               label="Password:"
@@ -92,7 +92,7 @@ function Signup() {
               {...register("password", {
                 required: true,
               })}
-              className="rounded-md "
+              className="rounded-md bg-white text-black focus:bg-gray-50"
             />
             <Button 
               type="submit" 
