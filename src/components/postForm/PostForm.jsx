@@ -60,8 +60,8 @@ function PostForm({ post }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
-      <div className="w-2/3 px-2 sm:w-full">
+    <form onSubmit={handleSubmit(submit)} className=" w-full flex flex-col gap-4 lg:flex-row xl:flex-row 2xl:flex-row">
+      <div className="px-1 w-full lg:w-2/3 xl:w-2/3 2xl:w-2/3">
         <RTE
           label="Caption :"
           name="caption"
@@ -69,7 +69,7 @@ function PostForm({ post }) {
           defaultValue={getValues("")}
         />
       </div> 
-      <div className="w-1/3 px-2 sm:w-full sm:mt-4">
+      <div className="px-2 w-full lg:w-1/3 xl:w-1/3 2xl:w-1/3">
         <Input
           label="Featured Image :"
           type="file"
@@ -78,7 +78,7 @@ function PostForm({ post }) {
           {...register("image", { required: !post })}
         />
         {post && (
-          <div className="w-full mb-4">
+          <div className="mb-4 w-full lg:w-1/3 xl:w-1/3 2xl:w-1/3">
             <img
               src={firebaseService.getFile(post.FeaturedImage)}
               alt="Photo"

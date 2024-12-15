@@ -52,10 +52,10 @@ function App() {
   }, [dispatch]);
 
   return !loading ? (
-    <div className="min-h-screen flex w-full">
+    <div className="relative min-h-screen flex w-full ">
       <div className="w-full block">
         <Header />
-        <main className="min-h-screen md:text-lg lg:text-xl">
+        <main className="min-h-screen md:text-md lg:text-lg xl:text-xl 2xl:text-5xl">
           <Outlet />
         </main>
       </div>

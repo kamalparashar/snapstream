@@ -7,15 +7,15 @@ export default {
   theme: {
     extend: {},
     screens: {
-      'sm': {'min': '300px', 'max': '426px'},
+      'sm': {'min': '310px', 'max': '426px'}, //mobiles
 
-      'md': {'min': '426px', 'max': '1023px'},
+      'md': {'min': '426px', 'max': '769px'},  //tablets
 
-      'lg': {'min': '1024px', 'max': '1279px'},
+      'lg': {'min': '770px', 'max': '1025px'}, //laptops
 
-      'xl': {'min': '1279px', 'max': '1535px'},
+      'xl' : {'min': '1026px', 'max': '1441px'},  //desktops
 
-      '2xl': {'min': '1536px'},
+      '2xl': {'min': '1442px'}  //large-screens
     },
   },
   plugins: [],

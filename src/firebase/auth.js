@@ -64,7 +64,7 @@ export class AuthService {
                     id: user.uid, 
                     username: user.displayName, 
                     email: user.email, 
-                    profilePicture: user.photoURL?user.photoURL:userPhoto, 
+                    profilePhoto: user.photoURL?user.photoURL:userPhoto, 
                     emailVerified: user.emailVerified, 
                 }; 
                 resolve(userInfo); 

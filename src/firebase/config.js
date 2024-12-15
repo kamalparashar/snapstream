@@ -174,6 +174,24 @@ class Service {
             throw error
         }
     }
+
+    async deletePostAndComments(postId) { 
+        // Reference to the post document 
+        const postRef = doc(db, 'posts', postId); 
+        // Reference to the comments subcollection 
+        const commentsRef = collection(db, 'posts', postId, 'comments'); 
+        // Fetch all comments in the subcollection 
+        const commentsSnapshot = await getDocs(commentsRef); 
+        // Delete each comment 
+        const batch = db.batch(); 
+        commentsSnapshot.forEach((commentDoc) => { 
+            batch.delete(commentDoc.ref); 
+        }) 
+        // Commit the batch 
+        await batch.commit(); 
+        // Delete the post document 
+        await deleteDoc(postRef);
+    }
 }
 
 const service = new Service();

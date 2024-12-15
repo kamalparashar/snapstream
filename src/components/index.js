@@ -14,7 +14,7 @@ import RTE from "./RTE"
 import PostCard from "./PostCard"
 import Profile from "./Profile"
 import Card from "./Card"
-
+import Modal from "./Modal"
 export {
     Container,
     Logo,
@@ -31,4 +31,5 @@ export {
     PostCard,
     Profile,
     Card,
+    Modal
 }

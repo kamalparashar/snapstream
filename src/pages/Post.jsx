@@ -27,7 +27,8 @@ export default function Post() {
       const postInfo = postData.find((post) => post.id === id);
       if (postInfo) {
         setPost(postInfo);
-        firebaseService.getUser(postInfo.userId)
+        firebaseService
+          .getUser(postInfo.userId)
           .then((user) => {
             setUser(user);
           })
@@ -46,7 +47,7 @@ export default function Post() {
         const unsubscribe = firebaseService.getComments(
           post.id,
           (commentsList) => {
-            setComments(commentsList)
+            setComments(commentsList);
             commentsList.forEach((comment) => {
               dispatch(addComment({ postId: post.id, ...comment }));
             });
@@ -102,65 +103,65 @@ export default function Post() {
 
   if (authStatus) {
     return post ? (
-      <div className="w-full mt-8 ">
-        <Container className="flex justify-between p-4 ">
-          <div className="  w-6/12 bg-[#191919] border-2 border-gray-700">
-            <div className=" flex items-center justify-between px-4 py-2">
+      <div className="w-full mt-4">
+        <Container className="flex flex-col lg:flex-row xl:flex-row 2xl:flex-row justify-between p-4">
+          <div className="mb-8 w-full lg:w-6/12 xl:w-6/12 2xl:w-6/12 bg-[#191919] border-2 border-gray-700 ">
+            <div className=" flex items-center justify-between p-2 text-md">
               <div className="flex justify-evenly items-center gap-3">
                 <img
-                  src={user?.profilePhoto || ""}
+                  src={user?.profilePhoto}
                   alt="photo"
-                  className="w-[4vmax] h-[4vmax] block border-[5px] border-double rounded-full"
+                  className="w-[6vmax] h-[6vmax] xl:w-[5vmax] xl:h-[5vmax] block border-[5px] border-double rounded-full"
                 />
                 <span className="whitespace-nowrap">
-                  <strong>{user?.username || "kamal"}</strong>
+                  <strong>{user?.username}</strong>
                 </span>
               </div>
-              <div className="flex justify-start text-blue-500 ">Follow</div>
+              <div className="flex justify-start text-blue-500 font-semibold">
+                Follow
+              </div>
             </div>
             <div className="flex flex-col">
               <img src={post.FeaturedImage} />
             </div>
-            <div className="flex gap-2 pt-4 pl-2">
+            <div className="flex gap-2 p-4">
               <strong>{post.username}</strong>
               {parse(post?.caption || "")}
             </div>
           </div>
 
-          <div className=" w-5/12 pl-6 border border-gray-700 rounded-xl">
-            <div className=" max-h-[600px] overflow-y-auto ">
+          <div className="w-full lg:w-5/12 xl:w-5/12 2xl:w-5/12 px-2 py-4 border-2 border-gray-700">
+            <h1 className="font-bold">Comments</h1>
+            {authStatus ? (
+              <form name="comment_form" onSubmit={handleSubmit(submitComment)}>
+                <div className="flex w-full mt-4 pb-6">
+                  <Input
+                    placeholder="add a comment..."
+                    {...register("comment", {
+                      required: true,
+                    })}
+                    className="py-2 border-2 border-black text-white bg-[#000] focus:bg-[#000]"
+                  />
+                  <Button
+                    type="submit"
+                    children={"Post"}
+                    className=" w-1/4 font-semibold text-white bg-gray-700 transition-all ease-in duration-75 border-2 border-l-0 border-black hover:bg-white hover:text-black"
+                  />
+                </div>
+              </form>
+            ) : null}
+            <div className="pt-4 max-h-[400px] overflow-y-auto px-2">
               {authStatus ? (
                 <div className="flex flex-col">
                   {comments?.map((comment) => (
-                    <div key={comment.id} className="flex gap-2 px-2">
-                      <strong>{comment.username}</strong>
+                    <div key={comment.id} className="flex gap-2 pb-2 2xl:pb-4">
+                      <span className="whitespace-nowrap">
+                        <strong>{comment.username}</strong>
+                      </span>
                       <p>{comment.comment}</p>
                     </div>
                   ))}
                 </div>
-              ) : null}
-            </div>
-            <div className=" ">
-              {authStatus ? (
-                <form
-                  name="comment_form"
-                  onSubmit={handleSubmit(submitComment)}
-                >
-                  <div className="flex w-full mt-3">
-                    <Input
-                      placeholder="add a comment..."
-                      {...register("comment", {
-                        required: true,
-                      })}
-                      className="py-2 focus:border-2 border-black"
-                    />
-                    <Button
-                      type="submit"
-                      children={"Post"}
-                      className="w-1/5 bg-white border text-gray-600 text-center hover:bg-[#212121] hover:border-white hover:text-white"
-                    />
-                  </div>
-                </form>
               ) : null}
             </div>
           </div>
