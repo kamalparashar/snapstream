@@ -3,9 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import authService from "../firebase/auth.js";
 import firebaseService from "../firebase/config.js";
 import { useSelector } from "react-redux";
-import { Button, Card, Modal } from "./index.js";
-import updateImage from "../assets/updateImage.png";
+import { Input, Button, Card, Modal } from "./index.js";
 import { uploadFile } from "../cloudinary/cloudinary.js";
+import { useForm } from "react-hook-form";
 
 function chunkArray(array, chunkSize) {
   const result = [];
@@ -16,13 +16,15 @@ function chunkArray(array, chunkSize) {
 }
 
 function Profile() {
-  const { userId } = useParams();
-  const posts = useSelector((state) => state.posts.posts);
-  const [userPosts, setUserPosts] = useState([]);
-  const [isAuthor, setIsAuthor] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const chunkedPosts = chunkArray(userPosts, 2);
-  const [showModal, setShowModal] = useState(false);
+  const { userId } = useParams()
+  const posts = useSelector((state) => state.posts.posts)
+  const [userPosts, setUserPosts] = useState([])
+  const [isAuthor, setIsAuthor] = useState(false)
+  const [userData, setUserData] = useState(null)
+  const chunkedPosts = chunkArray(userPosts, 2)
+  const [showModal, setShowModal] = useState(false)
+  const {register, handleSubmit, reset} = useForm()
+  const [isFile, setIsFile] = useState(false)
 
   const openModal = () => {
     setShowModal(true);
@@ -31,25 +33,27 @@ function Profile() {
     setShowModal(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await uploadFile(e.target[0].files[0])
+  const updateProfile = async (data) => {
+    await uploadFile(data.image[0])
       .then(async (url) => {
-        await authService.updateProfilePhoto(url);
+        await authService.updateProfilePhoto(url)
+        setUserData((prevState) => ({ ...prevState, profilePhoto: url }))
+        console.log(url)
       })
-      .then((res) => {
-        setUserData((prevState) => ({ ...prevState, profilePicture: res }));
-        console.log(userData);
+      .catch((error) => console.log("Error: while updating profile", error))
+      .finally(()=>{
+        reset({
+          update:''
+        })
       })
-      .catch((error) => console.log("Error: while updating profile", error));
   };
 
   useEffect(() => {
     if (userId) {
-      const filteredPosts = posts.filter((post) => post.userId == userId);
-      setUserPosts(filteredPosts);
+      const filteredPosts = posts.filter((post) => post.userId === userId)
+      setUserPosts(filteredPosts)
     }
-  }, [userId, posts]);
+  }, [posts]);
 
   useEffect(() => {
     authService
@@ -73,47 +77,47 @@ function Profile() {
       .catch((error) => {
         console.log("error in UseEffect while fetching user data:", error);
       });
-  }, [userId]);
+  }, [])
+
   return (
     <div>
       <div className="flex justify-around px-8 py-4">
-        <div className="flex flex-col  justify-center items-center text-center">
+        <div className="flex flex-col justify-center items-center text-center">
           <img
             src={userData?.profilePhoto}
             alt="profile"
             onClick={openModal}
             className="block object-cover w-[15vmax] h-[15vmax] rounded-full border-2 border-double border-gray-800"
           />
-          {isAuthor && <Modal showModal={showModal} closeModal={closeModal}>
-          {/* <form className="flex flex-col space-y-4">
-              <h2 className="text-xl font-bold">Contact Form</h2>
-              <input
-                type="text"
-                className="border border-gray-300 p-2 rounded-md"
-                placeholder="Name"
-              />
-              <input
-                type="email"
-                className="border border-gray-300 p-2 rounded-md"
-                placeholder="Email"
-              />
-              <textarea
-                className="border border-gray-300 p-2 rounded-md"
-                placeholder="Message"
-              ></textarea>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white p-2 rounded-md"
-              >
-                Submit
-              </button>
-            </form>  */}
-            </Modal>
-          }
+          <Modal showModal={showModal} closeModal={closeModal}>
+              <form onSubmit={handleSubmit(updateProfile)} className="flex flex-row-reverse justify-center items-center text-2xl text-blue-700 space-y-4">
+                {isAuthor && <Input
+                      label="Change"
+                      type="file"
+                      className="mb-4 hidden"
+                      accept="image/png, image/jpg, image/jpeg, image/gif, image/webp"
+                      {...register("image", { required: true })}
+                      onChange = {()=>(setIsFile(true))}
+                    />
+                }
+                {isAuthor && (isFile) && 
+                  <Button 
+                    type="submit"
+                    className="mb-4"
+                    children={"Submit"}
+                  />
+                }
+                <img
+                  src={userData?.profilePhoto}
+                  alt="profile"
+                  onClick={openModal}
+                  className="block object-cover w-[25vmax] h-[25vmax] rounded-full border-2 border-double border-gray-800"
+                />
+              </form> 
+          </Modal>
           <div className="text-2xl flex pt-2">
             <strong>{userData?.username}</strong>
           </div>
-          
         </div>
         <div className="flex font-bold justify-start items-center gap-8 text-center">
           <div>
@@ -141,7 +145,7 @@ function Profile() {
                   to={`/post/${post.id}`}
                   className="block w-full h-full"
                 >
-                  <Card {...post} />
+                  <Card author={isAuthor} {...post} />
                 </Link>
               ))}
             </div>

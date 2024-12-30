@@ -40,20 +40,20 @@ function PostForm({ post }) {
       }
     }
     else {
-      const file = await uploadFile(data.image[0]);
+      const file = await uploadFile(data.image[0])
       if (file) {
         data.FeaturedImage = file;
         const dbPost = await firebaseService.createPost({
           ...data,
           userId: userData.id,
           username: userData.username
-        });
+        })
         if (dbPost) {
           dispatch(addPost(dbPost))
           navigate(`/post/${dbPost.id}`)
         }
         else{
-          await deleteFile(post.FeaturedImage);
+          await deleteFile(post.FeaturedImage)
         }
       }
     }

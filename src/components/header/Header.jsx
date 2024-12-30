@@ -11,7 +11,6 @@ function Header() {
   const authStatus = useSelector(state => state.auth.status);
   const userData = useSelector(state => state.auth.userData);
   const navigate = useNavigate();
-  
   const navItems = [
     {
       name: <img src={Home} alt="Home" height={25} width={25}/>,

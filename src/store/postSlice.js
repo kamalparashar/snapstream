@@ -51,7 +51,7 @@ const postSlice = createSlice({
           userId:userId,
           username: username,
         }
-        post.comments.push(commentData);
+        post.comments.push(commentData);  
       }
     },
     deleteComment: (state, action) => {
@@ -73,9 +73,18 @@ const postSlice = createSlice({
         }
       }
     },
+    removeComments: (state, action) => {
+      const post = state.posts.find((post) => post.id === action.payload);
+      if(post){
+        post.comments = []
+      }
+      else{
+        console.log("Error: in removeComments:: post not found.")
+      }
+    }
   },
 });
 
-export const { addPost, deletePost, updatePost, addComment, deleteComment, updateComment } = postSlice.actions;
+export const { addPost, deletePost, updatePost, addComment, deleteComment, updateComment, removeComments} = postSlice.actions;
 
 export default postSlice.reducer;

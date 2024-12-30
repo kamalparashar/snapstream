@@ -143,8 +143,13 @@ class Service {
     }
  
     async getComments(postId, callback) {
-            const unsubscribe = onSnapshot(
-            collection(db, 'posts', postId, 'comments'), 
+        if (!postId) { 
+            console.error("Invalid postId:", postId); // Debugging statement 
+            return; 
+        } 
+        // Create a reference to the comments collection for the specific post
+        const commentsRef = collection(db, `posts/${postId}/comments`)
+        const unsubscribe = onSnapshot(commentsRef, 
             (snapshot) => { 
                 const commentsList = snapshot.docs.map(doc => ({
                     id: doc.id,

@@ -1,67 +1,36 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import firebaseService from "../firebase/config";
-import { Input, Button, Container } from "../components/index";
-import parse from "html-react-parser";
-import { useDispatch, useSelector } from "react-redux";
-import { deletePost } from "../store/postSlice";
-import { addComment } from "../store/postSlice.js";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import firebaseService from "../firebase/config"
+import { Input, Button, Container } from "../components/index"
+import parse from "html-react-parser"
+import { useDispatch, useSelector } from "react-redux"
+import { deletePost } from "../store/postSlice"
+import { addComment } from "../store/postSlice.js"
+import { useForm } from "react-hook-form"
+import { getPostById, getCommentsByPostId } from '../store/selectors'
 
 export default function Post() {
-  const { register, handleSubmit, reset } = useForm();
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const authStatus = useSelector((state) => state.auth.status);
-  const postData = useSelector((state) => state.posts.posts);
-  const [user, setUser] = useState([]);
-  const [post, setPost] = useState(null);
-  const initialComments = useSelector(
-    (state) => state.posts.posts.find((p) => p.id === id)?.comments || []
-  );
-  const [comments, setComments] = useState(initialComments);
+  const { register, handleSubmit, reset } = useForm()
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const authStatus = useSelector((state) => state.auth.status)
+  const [user, setUser] = useState([])
+  const post = useSelector((state) => getPostById(state, id))
+  const comments = useSelector((state) => getCommentsByPostId(state, id))
 
   useEffect(() => {
     if (id) {
-      const postInfo = postData.find((post) => post.id === id);
-      if (postInfo) {
-        setPost(postInfo);
-        firebaseService
-          .getUser(postInfo.userId)
-          .then((user) => {
-            setUser(user);
-          })
-          .catch((error) => {
-            console.log("Error while fetching userInfo.", error);
-          });
-      } else {
-        navigate("/");
-      }
+      firebaseService
+      .getUser(post?.userId)
+      .then((user) => {
+        setUser(user);
+      })
+      .catch((error) => {
+        console.log("Error while fetching userInfo.", error);
+      })
     } else navigate("/");
-  }, [id, navigate]);
-
-  useEffect(() => {
-    if (post) {
-      async function fetchData() {
-        const unsubscribe = firebaseService.getComments(
-          post.id,
-          (commentsList) => {
-            setComments(commentsList);
-            commentsList.forEach((comment) => {
-              dispatch(addComment({ postId: post.id, ...comment }));
-            });
-          }
-        );
-        return () => {
-          if (unsubscribe) {
-            unsubscribe();
-          }
-        };
-      }
-      fetchData();
-    }
-  }, [post, dispatch]);
+  }, [id]);
 
   const deletePost = () => {
     firebaseService.deletePost(post.id).then((status) => {
@@ -96,7 +65,7 @@ export default function Post() {
       throw error;
     } finally {
       reset({
-        comment: "",
+        comment: '',
       });
     }
   };
@@ -158,7 +127,7 @@ export default function Post() {
                       <span className="whitespace-nowrap">
                         <strong>{comment.username}</strong>
                       </span>
-                      <p>{comment.comment}</p>
+                      <p className="break-words overflow-hidden">{comment.comment}</p>
                     </div>
                   ))}
                 </div>

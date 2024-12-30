@@ -5,7 +5,7 @@ import firebaseService from "./firebase/config.js";
 import { login, logout } from "./store/authSlice.js";
 import { Outlet } from "react-router-dom";
 import { Header } from "./components";
-import { addPost, addComment } from "./store/postSlice.js";
+import { addPost, addComment, removeComments} from "./store/postSlice.js";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -32,9 +32,12 @@ function App() {
     let unsubscribeAllComments = [];
     async function fetchComments(id) {
       const unsubscribe = await firebaseService.getComments(id, (comments) => {
-        comments.forEach((comment) => {
-          dispatch(addComment({ postId: id, ...comment }));
-        });
+        if(comments){
+          dispatch(removeComments(id))
+          comments.forEach((comment) => {
+            dispatch(addComment({ postId: id, ...comment }));
+          })
+        }
       });
       unsubscribeAllComments.push(unsubscribe);
     }
