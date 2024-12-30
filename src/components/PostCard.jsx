@@ -57,14 +57,15 @@ function PostCard(post) {
                 alt="photo"
                 className="w-[6vmax] h-[6vmax] xl:w-[4vmax] xl:h-[4vmax] block border-[5px] border-double rounded-full"
               />
-              <span className="whitespace-nowrap">
+              <span className="whitespace-nowrap text-2xl">
                 <strong>{user.username}</strong>
               </span>
             </div>
           </Link>
-          <div className="px-4 flex justify-start text-blue-500 font-semibold">Follow</div>
+          <div className="px-2 text-sm">●</div>
+          <div className="flex justify-start items-end text-blue-500 text-lg">Follow</div>
         </div>
-        <div class="text-white text-2xl font-bold">⋮</div>
+        <div className="text-white text-2xl font-bold">⋮</div>
       </div>
       <Link to={`/post/${post.id}`}>
         <div className="h-full flex flex-col gap-4 pb-2">

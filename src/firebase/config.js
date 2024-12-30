@@ -7,9 +7,12 @@ import {
     deleteDoc,
     updateDoc, 
     getDoc,
+    getDocs,
     serverTimestamp,
     query, 
     orderBy,
+    writeBatch,
+    
 } from "firebase/firestore"
 import { auth } from "./firebase.js";
 
@@ -188,7 +191,7 @@ class Service {
         // Fetch all comments in the subcollection 
         const commentsSnapshot = await getDocs(commentsRef); 
         // Delete each comment 
-        const batch = db.batch(); 
+        const batch = writeBatch(db); 
         commentsSnapshot.forEach((commentDoc) => { 
             batch.delete(commentDoc.ref); 
         }) 

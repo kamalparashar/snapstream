@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import authService from "../firebase/auth.js";
 import firebaseService from "../firebase/config.js";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Input, Button, Card, Modal } from "./index.js";
 import { uploadFile } from "../cloudinary/cloudinary.js";
 import { useForm } from "react-hook-form";
+import { deletePost } from "../store/postSlice.js";
 
 function chunkArray(array, chunkSize) {
   const result = [];
@@ -17,6 +18,7 @@ function chunkArray(array, chunkSize) {
 
 function Profile() {
   const { userId } = useParams()
+  const dispatch = useDispatch()
   const posts = useSelector((state) => state.posts.posts)
   const [userPosts, setUserPosts] = useState([])
   const [isAuthor, setIsAuthor] = useState(false)
@@ -32,6 +34,15 @@ function Profile() {
   const closeModal = () => {
     setShowModal(false);
   };
+
+  const handleClick = async (id)=>{
+    try {
+      await firebaseService.deletePostAndComments(id)
+      dispatch(deletePost({id}))
+    } catch (error) {
+      console.log("Error while deleting post. :: ", error)
+    }
+  }
 
   const updateProfile = async (data) => {
     await uploadFile(data.image[0])
@@ -77,7 +88,7 @@ function Profile() {
       .catch((error) => {
         console.log("error in UseEffect while fetching user data:", error);
       });
-  }, [])
+  }, [userId])
 
   return (
     <div>
@@ -140,13 +151,18 @@ function Profile() {
           {chunkedPosts?.map((chunk, index) => (
             <div key={index} className="grid gap-2">
               {chunk?.map((post) => (
-                <Link
-                  key={post.id}
-                  to={`/post/${post.id}`}
-                  className="block w-full h-full"
-                >
-                  <Card author={isAuthor} {...post} />
-                </Link>
+                <div key={post.id} className="relative">
+                  {isAuthor && <Button onClick={()=>handleClick(post.id)} children="DEL"
+                      className="absolute top-2 right-2 z-[1] bg-[#006A4E] rounded-md p-1 font-semibold" 
+                  />}
+                  <Link
+                    key={post.id}
+                    to={`/post/${post.id}`}
+                    className="block w-full h-full"
+                  >
+                    <Card {...post} />
+                  </Link>
+                </div>
               ))}
             </div>
           ))}
