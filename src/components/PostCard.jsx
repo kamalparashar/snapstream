@@ -47,25 +47,25 @@ function PostCard(post) {
     }
   }
   return (
-    <div className="h-auto w-[318px] md:w-[650px] lg:w-[700px] xl:w-[800px] 2xl:w-[1800px] flex flex-col border-2 border-gray-700">
+    <div className="h-auto w-[318px] md:w-[650px] lg:w-[700px] xl:w-[750px] 2xl:w-[1800px] flex flex-col border-2 border-gray-700">
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex justify-evenly items-center">
           <Link to={`/user/${post.userId}`}>
-            <div className="flex justify-evenly items-center gap-3">
+            <div className="flex justify-evenly items-center gap-3 ">
               <img
                 src={user.profilePhoto}
                 alt="photo"
-                className="w-[6vmax] h-[6vmax] xl:w-[4vmax] xl:h-[4vmax] block border-[5px] border-double rounded-full"
+                className="w-[6vmax] h-[6vmax] xl:w-[4vmax] xl:h-[4vmax] 2xl:w-[3.5vmax] 2xl:h-[3.5vmax] block border-[5px] border-double rounded-full bg-cover"
               />
-              <span className="whitespace-nowrap text-2xl">
+              <span className="whitespace-nowrap text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">
                 <strong>{user.username}</strong>
               </span>
             </div>
           </Link>
-          <div className="px-2 text-sm">●</div>
-          <div className="flex justify-start items-end text-blue-500 text-lg">Follow</div>
+          <div className="px-2 text-base md:text-md lg:text-lg xl:text-xl 2xl:text-2xl">●</div>
+          <div className="flex justify-start items-end text-blue-500 text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">Follow</div>
         </div>
-        <div className="text-white text-2xl font-bold">⋮</div>
+        <div className="text-white font-bold text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">⋮</div>
       </div>
       <Link to={`/post/${post.id}`}>
         <div className="h-full flex flex-col gap-4 pb-2">

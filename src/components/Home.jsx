@@ -7,7 +7,7 @@ function Home() {
   const posts = useSelector(state => state.posts.posts);
 
   return (
-    <div className="w-full">
+    <div className="w-full h-[calc(100vh-50px)]">
       <Container className="flex justify-center items-center">
           <div className="flex flex-col ">
             {posts.slice(1)?.map((post) => (

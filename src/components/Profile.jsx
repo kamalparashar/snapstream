@@ -4,9 +4,10 @@ import authService from "../firebase/auth.js";
 import firebaseService from "../firebase/config.js";
 import { useSelector, useDispatch } from "react-redux";
 import { Input, Button, Card, Modal } from "./index.js";
-import { uploadFile } from "../cloudinary/cloudinary.js";
+import { deleteFile, uploadFile } from "../cloudinary/cloudinary.js";
 import { useForm } from "react-hook-form";
 import { deletePost } from "../store/postSlice.js";
+import User from "../assets/User.png"
 
 function chunkArray(array, chunkSize) {
   const result = [];
@@ -27,6 +28,7 @@ function Profile() {
   const [showModal, setShowModal] = useState(false)
   const {register, handleSubmit, reset} = useForm()
   const [isFile, setIsFile] = useState(false)
+  const [profilePhoto, setProfilePhoto] = useState(User)
 
   const openModal = () => {
     setShowModal(true);
@@ -35,9 +37,10 @@ function Profile() {
     setShowModal(false);
   };
 
-  const handleClick = async (id)=>{
+  const handleClick = async (id,FeaturedImage)=>{
     try {
       await firebaseService.deletePostAndComments(id)
+      await deleteFile(FeaturedImage)
       dispatch(deletePost({id}))
     } catch (error) {
       console.log("Error while deleting post. :: ", error)
@@ -79,6 +82,7 @@ function Profile() {
             .getUser(userId)
             .then((user) => {
               setUserData(user)
+              setProfilePhoto(user?.profilePhoto)
             })
             .catch((error) => {
               console.log("Error: while fetching user profile info: ", error);
@@ -95,35 +99,37 @@ function Profile() {
       <div className="flex justify-around px-8 py-4">
         <div className="flex flex-col justify-center items-center text-center">
           <img
-            src={userData?.profilePhoto}
+            src={userData?.profilePhoto || profilePhoto}
             alt="profile"
             onClick={openModal}
             className="block object-cover w-[15vmax] h-[15vmax] rounded-full border-2 border-double border-gray-800"
           />
           <Modal showModal={showModal} closeModal={closeModal}>
-              <form onSubmit={handleSubmit(updateProfile)} className="flex flex-row-reverse justify-center items-center text-2xl text-blue-700 space-y-4">
+              <form onSubmit={handleSubmit(updateProfile)} className="flex justify-evenly items-center text-2xl text-blue-700 px-16">
+                <img
+                  src={profilePhoto}
+                  alt="profile"
+                  className="block object-cover w-[25vmax] h-[25vmax] rounded-full border-2 border-double border-gray-800"
+                />
                 {isAuthor && <Input
                       label="Change"
                       type="file"
                       className="mb-4 hidden"
                       accept="image/png, image/jpg, image/jpeg, image/gif, image/webp"
                       {...register("image", { required: true })}
-                      onChange = {()=>(setIsFile(true))}
-                    />
-                }
-                {isAuthor && (isFile) && 
-                  <Button 
-                    type="submit"
-                    className="mb-4"
-                    children={"Submit"}
-                  />
-                }
-                <img
-                  src={userData?.profilePhoto}
-                  alt="profile"
-                  onClick={openModal}
-                  className="block object-cover w-[25vmax] h-[25vmax] rounded-full border-2 border-double border-gray-800"
-                />
+                      onChange = {(event)=>{
+                        setIsFile(true); 
+                        setProfilePhoto(event.target.files[0])
+                      }}
+                      />
+                    }
+                    {isAuthor && (isFile) && 
+                      <Button 
+                        type="submit"
+                        className="m-4"
+                        children={"Submit"}
+                      />
+                    }
               </form> 
           </Modal>
           <div className="text-2xl flex pt-2">
@@ -152,7 +158,7 @@ function Profile() {
             <div key={index} className="grid gap-2">
               {chunk?.map((post) => (
                 <div key={post.id} className="relative">
-                  {isAuthor && <Button onClick={()=>handleClick(post.id)} children="DEL"
+                  {isAuthor && <Button onClick={()=>handleClick(post.id, post.FeaturedImage)} children="DEL"
                       className="absolute top-2 right-2 z-[1] bg-[#006A4E] rounded-md p-1 font-semibold" 
                   />}
                   <Link

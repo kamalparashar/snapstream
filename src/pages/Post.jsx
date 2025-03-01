@@ -80,20 +80,20 @@ export default function Post() {
                 <img
                   src={user?.profilePhoto}
                   alt="photo"
-                  className="w-[6vmax] h-[6vmax] xl:w-[5vmax] xl:h-[5vmax] block border-[5px] border-double rounded-full"
+                  className="w-[6vmax] h-[6vmax] xl:w-[4vmax] xl:h-[4vmax] 2xl:w-[3.5vmax] 2xl:h-[3.5vmax] block border-[5px] border-double rounded-full bg-cover"
                 />
-                <span className="whitespace-nowrap">
+                <span className="whitespace-nowrap text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">
                   <strong>{user?.username}</strong>
                 </span>
               </div>
-              <div className="flex justify-start text-blue-500 font-semibold">
+              <div className="flex justify-start text-blue-500 font-semibold text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">
                 Follow
               </div>
             </div>
             <div className="flex flex-col">
               <img src={post.FeaturedImage} />
             </div>
-            <div className="flex gap-2 p-4">
+            <div className="flex gap-1 md:gap-2 lg:gap-2 xl:gap-3 2xl:gap-4 p-2 2xl:p-8">
               <strong>{post.username}</strong>
               {parse(post?.caption || "")}
             </div>
@@ -103,7 +103,7 @@ export default function Post() {
             <h1 className="font-bold">Comments</h1>
             {authStatus ? (
               <form name="comment_form" onSubmit={handleSubmit(submitComment)}>
-                <div className="flex w-full mt-4 pb-4">
+                <div className="flex w-full mt-4 pb-4 2xl:mt-8 2xl:pb-8">
                   <Input
                     placeholder="add a comment..."
                     {...register("comment", {
